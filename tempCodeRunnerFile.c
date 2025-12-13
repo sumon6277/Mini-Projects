@@ -1,0 +1,1 @@
+passwordR[strcspn(passwordR,"\n")] = '\0';
