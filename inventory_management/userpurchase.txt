@@ -1,6 +1,4 @@
 3 Potato 6 600.00
-1 Sumon 1 200.00
-5 Sumon 1 200.00
 5 Potato 4 400.00
 4 Potato 5 500.00
 4 Potato 2 200.00

@@ -40,7 +40,7 @@ int payment_done = 0;
 pthread_mutex_t lock;
 sem_t sem;
 
-void setColor();
+void setColor(WORD color);
 void mainMenu();
 void adminLog();
 void settingAdminLogInfo();
@@ -272,7 +272,7 @@ void viewProduct() {
     if(!inventory)
     {
         printf("No product found\n");
-        return NULL;
+        return;
     }
 
     printf("\nID\tName\tQty\tPrice\n");
@@ -417,7 +417,7 @@ void purchaseProduct()
     if(!inventory)
     {
         printf("No product found\n");
-        return NULL;
+        return;
     }
 
     while (fscanf(inventory, "%d %s %d %f",&p.id, p.name, &p.quantity, &p.price) != EOF) 
@@ -444,7 +444,7 @@ void purchaseProduct()
     if(!userpurchase)
     {
         printf("No product is sold\n");
-        return NULL;
+        return;
     }
 
     fprintf(userpurchase, "%d %s %d %.2f\n", u.id, u.p.name, u.p.quantity, u.total);
@@ -516,7 +516,7 @@ void payment()
         if(!usertemp)
         {
             printf("A simple error occured\n");
-            return NULL;
+            return;
         }
 
         while(fscanf(userpurchase, "%d %s %d %f",&u.id,u.p.name,&u.p.quantity,&u.total) != EOF)
@@ -965,7 +965,7 @@ void mainMenu()
 int main()
 {   
     h = GetStdHandle(STD_OUTPUT_HANDLE);
-    
+
     setColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 
     pthread_mutex_init(&lock,NULL);
