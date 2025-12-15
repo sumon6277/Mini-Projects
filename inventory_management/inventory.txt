@@ -1,4 +1,3 @@
 102 Sumon 2 200.00
 101 Potato 100 100.00
 103 chips 500 10.00
-104 mesh potato 3 299.00

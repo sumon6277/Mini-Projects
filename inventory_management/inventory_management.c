@@ -23,7 +23,9 @@ struct uProduct
 };
 
 struct Product p;
-struct uProduct up;
+struct uProduct up = {0};
+
+int found = 0;
 
 pthread_mutex_t lock;
 sem_t sem;
@@ -45,6 +47,12 @@ void updateProduct();
 void* inputUpdateThread();
 void* addUpdateThread();
 void adminView();
+void searchProduct();
+void* inputSearchProduct();
+void* viewSearchProduct();
+void deleteProduct();
+void* inputDeleteProduct();
+void* addDeleteProduct();
 
 HANDLE h;
 
@@ -109,8 +117,8 @@ void updateProduct()
     pthread_t p1,p2;
     
     pthread_create(&p1,NULL,inputUpdateThread,NULL);
-
     pthread_create(&p2,NULL,addUpdateThread,NULL);
+
     pthread_join(p1,NULL);
     pthread_join(p2,NULL);
 
@@ -221,6 +229,106 @@ void* addUpdateThread(void* arg)
     rename("temp.txt","inventory.txt");
     pthread_mutex_unlock(&lock);
 }
+
+void viewProduct() {
+     inventory = fopen("inventory.txt", "r");
+
+    if (!inventory) {
+        printf("No products!\n");
+        return;
+    }
+
+    printf("\nID\tName\tQty\tPrice\n");
+    while (fscanf(inventory, "%d %s %d %f",
+                  &p.id, p.name, &p.quantity, &p.price) != EOF) {
+        printf("%d\t%s\t%d\t%.2f\n",
+               p.id, p.name, p.quantity, p.price);
+    }
+    fclose(inventory);
+}
+
+void searchProduct()
+{
+    pthread_t t1,t2;
+    pthread_create(&t1,NULL,inputSearchProduct,NULL);
+    pthread_create(&t2,NULL,viewSearchProduct,NULL);
+
+    pthread_join(t1,NULL);
+    pthread_join(t2,NULL);
+}
+void* inputSearchProduct(void* args)
+{
+    printf("\nEnter productID to search : ");
+    scanf("%d",&up.id);
+
+    sem_post(&sem);
+    return NULL;
+}
+void* viewSearchProduct(void* args) 
+{
+    sem_wait(&sem);
+    inventory = fopen("inventory.txt", "r");
+
+    while (fscanf(inventory, "%d %s %d %f",&p.id, p.name, &p.quantity, &p.price) != EOF) {
+        if (p.id == up.id) {
+            printf("Product-Found: %s Quantity:%d Price:%.2f\n",p.name, p.quantity, p.price);
+            pthread_mutex_lock(&lock);
+            found = 1;
+            pthread_mutex_unlock(&lock);
+            break;
+        }
+    }
+
+    if (found == 0)
+        printf("Product not found!\n");
+
+    fclose(inventory);
+    return NULL;
+}
+
+void deleteProduct() 
+{
+    pthread_t t1,t2;
+    pthread_create(&t1,NULL,inputDeleteProduct,NULL);
+    pthread_create(&t2,NULL,addDeleteProduct,NULL);
+
+    pthread_join(t1,NULL);
+    pthread_join(t2,NULL);
+    
+    printf("Product Deleted!\n");
+}
+
+void* inputDeleteProduct(void* args)
+{
+    printf("\nEnter ID to delete: ");
+    scanf("%d", &up.id);
+
+    sem_post(&sem);
+
+    return NULL;
+}
+
+void* addDeleteProduct(void* args)
+{
+    sem_wait(&sem);
+    pthread_mutex_lock(&lock);
+
+    inventory = fopen("inventory.txt", "r");
+    temp = fopen("temp.txt", "w");
+
+    while (fscanf(inventory, "%d %s %d %f",&p.id, p.name, &p.quantity, &p.price) != EOF) {
+        if (p.id != up.id)
+        {
+            fprintf(temp, "%d %s %d %.2f\n",p.id, p.name, p.quantity, p.price);
+        }
+    }
+
+    fclose(inventory);
+    fclose(temp);
+    remove("inventory.txt");
+    rename("temp.txt", "inventory.txt");
+    pthread_mutex_unlock(&lock);
+}
 void setColor(WORD color)
 {
     SetConsoleTextAttribute(h,color);
@@ -231,6 +339,9 @@ void adminView()
     printf("\nAdmin Pannel\n");
     printf("\n1-- Add product");
     printf("\n2-- Update Product");
+    printf("\n3-- View Product");
+    printf("\n4-- Search Product");
+    printf("\n5-- Delete Product");
     printf("\n0-- Exit");
     printf("\nEnter your choice: ");
     int ch;
@@ -243,6 +354,21 @@ void adminView()
     else if(ch == 2)
     {
         updateProduct();
+        adminView();
+    }
+    else if(ch == 3)
+    {
+        viewProduct();
+        adminView();
+    }
+    else if(ch == 4)
+    {
+        searchProduct();
+        adminView();
+    }
+    else if(ch == 5)
+    {
+        deleteProduct();
         adminView();
     }
     else if(ch == 0)
